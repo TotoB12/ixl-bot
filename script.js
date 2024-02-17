@@ -11,7 +11,8 @@
 (function() {
     'use strict';
 
-    let lastQuestionNormalized = "";
+    // let lastQuestionNormalized = "";
+    let lastQuestion = "";
 
     function normalizeText(text) {
         let cleanText = text.replace(/\W/g, '').toLowerCase();
@@ -20,48 +21,81 @@
 
 function findAndPrintQuestion() {
     try {
-        const bodyText = document.body.textContent || document.body.innerText;
-        const incorrectMessageExists = bodyText.includes("Sorry, incorrect");
-        const goToRecommendationsExists = bodyText.includes("Go to recommendations");
+        // const bodyText = document.body.textContent || document.body.innerText;
+        // const incorrectMessageExists = bodyText.includes("Sorry, incorrect");
+        // const goToRecommendationsExists = bodyText.includes("Go to recommendations");
 
-        if (incorrectMessageExists || goToRecommendationsExists) {
-            console.log("Skipping due to page conditions.");
-            return;
-        }
+        // if (incorrectMessageExists || goToRecommendationsExists) {
+        //     console.log("Skipping due to page conditions.");
+        //     return;
+        // }
 
-        const questionComponents = document.querySelectorAll(".question-component");
-        let fullQuestion = "";
+        // const questionComponents = document.querySelectorAll(".question-component");
+        // let fullQuestion = "";
 
-        questionComponents.forEach(component => {
+            const bodyText = document.body.textContent || document.body.innerText;
+            const incorrectMessageExists = bodyText.indexOf("Sorry, incorrect") > -1;
 
-            const elements = component.querySelectorAll("*:not(.crisp-button)");
-            Array.from(elements).forEach(el => {
-                if (!el.closest('.crisp-button')) {
-                    const hasTextNodes = Array.from(el.childNodes).some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
-                    if (hasTextNodes || el.childElementCount === 0) {
-                        let textContent = el.textContent.trim();
-                        if (textContent && !fullQuestion.includes(textContent)) {
-                            fullQuestion += textContent + "\n";
-                        }
-                    }
+            var questionElement = document.querySelector("main#practice-page-container section > section > div > div");
+            var supportingTextElements = document.querySelectorAll("main#practice-page-container section > section > div > div > div");
+
+            let fullQuestion = "";
+
+        // questionComponents.forEach(component => {
+        //     component.childNodes.forEach(node => {
+        //         if (node.nodeType === Node.ELEMENT_NODE && !node.closest('.crisp-button')) {
+        //             let textContent = node.textContent.trim();
+        //             if (textContent) {
+        //                 fullQuestion += " " + textContent;
+        //             }
+        //         }
+        //         else if (node.nodeType === Node.TEXT_NODE && /\S/.test(node.nodeValue)) {
+        //             fullQuestion += node.nodeValue.trim();
+        //         }
+        //     });
+        // });
+
+        // fullQuestion = fullQuestion.replace(/\s+/g, ' ').trim();
+
+        // let currentQuestionNormalized = normalizeText(fullQuestion);
+
+        // if (fullQuestion !== "" && currentQuestionNormalized !== lastQuestionNormalized) {
+        //     console.log("Question found: ", fullQuestion);
+        //     lastQuestionNormalized = currentQuestionNormalized;
+        //     sendQuestionToServer(fullQuestion);
+        // }
+    // } catch (e) {
+    //     console.error("An error occurred while trying to find the question element: ", e);
+    // }
+
+            if (questionElement) {
+                fullQuestion += questionElement.textContent.trim();
+            }
+
+            supportingTextElements.forEach(function(elem, index) {
+                if (index === 0 && fullQuestion !== "") {
+                    fullQuestion += "\n";
+                } else if (index > 0) {
+                    fullQuestion += "\n";
                 }
+                fullQuestion += elem.textContent.trim();
             });
-        });
 
-        fullQuestion = fullQuestion.trim().replace(/\n\s*\n/g, '\n');
+            const goToRecommendationsExists = fullQuestion === "Go to recommendations";
 
-        let currentQuestionNormalized = normalizeText(fullQuestion);
-
-        if (fullQuestion !== "" && currentQuestionNormalized !== lastQuestionNormalized) {
-            console.log("Question found: ", fullQuestion);
-            lastQuestionNormalized = currentQuestionNormalized;
-            sendQuestionToServer(fullQuestion);
+            if (!incorrectMessageExists && !goToRecommendationsExists && fullQuestion !== "" && fullQuestion !== lastQuestion) {
+                console.log("Question found: ", fullQuestion);
+                lastQuestion = fullQuestion;
+                sendQuestionToServer(fullQuestion);
+            } else if (incorrectMessageExists) {
+                console.log("Skipping question due to 'Sorry, incorrect' message.");
+            } else if (goToRecommendationsExists) {
+                console.log("Skipping 'Go to recommendations' prompt.");
+            }
+        } catch (e) {
+            console.error("An error occurred while trying to find the question element: ", e);
         }
-    } catch (e) {
-        console.error("An error occurred while trying to find the question element: ", e);
-    }
 }
-
 
     function sendQuestionToServer(question) {
         // You are a highly efficient assistant that is strictly tasked with answering questions or assignments accurately and concisely. Ensure your responses are direct and factually correct.
@@ -262,7 +296,7 @@ Answer:
 
         GM_xmlhttpRequest({
             method: "POST",
-            url: "http://abcc1e2f-8fe9-42c0-a727-93580922206e-00-2pzuf9j9qvw3h.riker.replit.dev/api",
+            url: "http://chat.totob12.com/api",
             headers: {
                 "Content-Type": "application/json"
             },
