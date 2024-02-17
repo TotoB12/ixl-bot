@@ -33,17 +33,13 @@ function findAndPrintQuestion() {
         let fullQuestion = "";
 
         questionComponents.forEach(component => {
-            // Selecting elements that may contain text directly or have child elements with text
+
             const elements = component.querySelectorAll("*:not(.crisp-button)");
             Array.from(elements).forEach(el => {
-                // Check if the element is not within a .crisp-button and has text content
                 if (!el.closest('.crisp-button')) {
-                    // Using nodeType to check for text nodes among children
                     const hasTextNodes = Array.from(el.childNodes).some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
-                    // If the element or any of its children directly contain text
                     if (hasTextNodes || el.childElementCount === 0) {
                         let textContent = el.textContent.trim();
-                        // Ensure the text content is not empty and not previously added
                         if (textContent && !fullQuestion.includes(textContent)) {
                             fullQuestion += textContent + "\n";
                         }
